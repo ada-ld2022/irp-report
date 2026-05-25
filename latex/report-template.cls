@@ -10,7 +10,7 @@
 \DTMlangsetup{showdayofmonth=false}
 \RequirePackage{setspace}
 \RequirePackage{xcolor}
-\RequirePackage{hyperref}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue,pagebackref=true,backref=false]{hyperref}
 \RequirePackage{microtype}  % improve text
 \RequirePackage[parfill]{parskip}  % remove indentation for paragraphs
 \RequirePackage{xurl}  % helps breaking urls with \url{}
@@ -26,7 +26,7 @@
 
 % sans-serif font
 % \renewcommand{\familydefault}{\sfdefault}
-\renewcommand{\familydefault}{phv}
+% \renewcommand{\familydefault}{phv}
 
 % Class options
 \DeclareOption{project-plan}{\newcommand{\doctype}{Project Plan}}

@@ -10,6 +10,7 @@
 \usepackage{amsfonts}
 \usepackage{blindtext}
 \usepackage{appendix}
+\usepackage{nicefrac}
 
 % reusable maths componets
 \newcommand{\utt}{\frac {\partial^2 u} {\partial t^2}}
@@ -45,6 +46,23 @@ The numerical modelling of waves has broad applications across science and engin
 % Introduction section
 \section{Introduction}
 \label{sect:intro}
+
+The modern world depends strongly on our understanding of wave propagation. With applications spanning medical imaging, resource prospecting, and telecommunications, the implications of wave propagation are countless and have been central to the development of civilisation. Supporting this development is our ability to solve the wave equation numerically, that is, to approximate it by a discrete form so that it may be represented on a computer. 
+
+The propagation of a wave field $u$ through time $t$ and space can be described by the wave equation,
+
+\begin{equation}
+    \frac {\partial^2 u} {\partial t^2} = c^2 \nabla^2 u,\,
+    \label{eq:wave}
+\end{equation}
+
+where $c$ is the wave speed and $\nabla^2$ is the Laplacian operator in one, two, or three spatial dimensions.
+
+Under certain assumptions, an analytical solution to the wave equation can be derived, but in many practical contexts we require the flexibility to represent complex geometries, boundary conditions, and forcing terms at will. To do so, we should look to solve the continuous wave equation numerically by approximating it with a discrete form. Classical discretisation approaches include the finite difference \cite{roseFiniteDifferenceSchemes1964,courantPartialDifferenceEquations1967} and finite element \cite{turnerStiffnessDeflectionAnalysis1956} methods which result in a system of equations which can be solved iteratively \cite{ipsenIdeaKrylovMethods1998}, or directly \cite{haoNumericalMethodsSolving2015}. Regardless of the solution method, there exists a computational cost that can be significant due to the ill-conditioned and sparse nature of the discretised systems (see \cite{pranjalOptimalIterativeSolvers2018,kirbySolverCompositionPDE2018,gillmanDirectSolver$ON$2014}). Often, the difficulty in numerical modelling is balancing the trade-off between errors and computational cost.
+
+Other errors arise when solving the wave equation in particular. Numerical dispersion and dissipation errors occur where a finite difference discretisation introduces phase and amplitude inconsistencies \cite{marshallNumericalDispersionDissipation2011}. Resultantly, waves can propagate with an incorrect speed, meaning errors accumulate with propagation distance. Additionally, errors tend to compound over long time integrations \cite{gustafssonWellposednessStability2008}. Often, a large number of discretisation nodes are required to achieve an acceptable accuracy \cite{haoNumericalMethodsSolving2015}, which contributes to the computational workload. Many advancements have been made to combat these sorts of errors, such as high order and dispersion reduction schemes (see e.g., \cite{cohenBasicEquations2002,finkelsteinFiniteDifferenceTime2007,anUniformDispersionReduction2017}), and spectral methods \cite{bernardiSpectralMethods1997}, but the necessity for robust wave modelling tools motivates a continued search for numerical methods that are both accurate and computationally efficient.
+
+Optimising a Discrete Loss (ODIL) \cite{karnakovSolvingInverseProblems2024} has emerged as a novel technique for the numerical solution of PDEs and their associated inverse problems. ODIL can approximate the solution to a PDE by means of minimising a functional $\mathcal{L}$ that encapsulates the discretised PDE, and boundary and initial conditions $g^n_i$. In the functional, the PDE is expressed in a residual form in terms of the field of interest, which is optimised directly. Thus, if a unique minimiser exists, it is the solution field which satisfies the PDE and boundary conditions exactly.
 
 \section{Background}
 \label{sect:backg}
@@ -159,6 +177,20 @@ so the residual vanishes when the discrete wave equation is satisfied. The forwa
 \end{equation}
 
 Then it follows that the minimiser is a discrete pressure field $\bf u$ for which the residual is minimised and, in the ideal case, vanishes entirely, implying satisfaction of the discretised wave equation.
+
+\subsubsection{Solution Methods}
+
+Our problem is the linear least squares problem
+
+\begin{equation}
+    \min_\mathbf{u}\frac 1 2 \|\mathbf{r}(\mathbf{u})\|^2 \quad \text{where} \quad \mathbf{r}(\mathbf{u}) = A\mathbf{u} - \bf s.
+    \label{eq:prob-summary}
+\end{equation}
+
+Optimisation problems of this form may be solved using a variety of first- and second-order optimisation methods. In this work, both the L-BFGS algorithm and a direct method (derived from a Gauss-Newton approach) were investigated.
+
+L-BFGS \cite{liuLimitedMemoryBFGS1989} is a memory-limited quasi Newton method that approximates the inverse Hessian using information from previous iterates without explicitly forming second derivatives. It is well suited to large scale optimisation problems and is readily available through the SciPy optimisation library. In this work, L-BFGS served as a baseline optimisation method.
+
 
 \section{Methodology}
 \label{sect:methods}
@@ -428,10 +460,44 @@ $$u = e^{i\theta n}$$
     \label{fig:svd}
 \end{figure}
 
-% Another section
-\section{Methods}
-
 \section{Results}
+
+\subsection{Measuring accuracy}
+
+We use the form of the time-domain Green's function of the two dimensional wave equation outlined in \cite{Chapter4Greens}, that is,
+
+\begin{equation}
+    g(t, r | \tau) = \frac{1}{2\pi}\frac{H(t - \tau - \nicefrac{r}{c})}{\sqrt{(t-\tau)^2 - \nicefrac{r^2}{c^2}}}.
+    \label{eq:greens}
+\end{equation}
+
+where $H$ is the Heaviside step function, $r^2 = (x-\xi)^2 + (y-\eta)^2$, $-\infty < x, y, \xi,\ \eta < \infty$ and $0 < t, \tau$. Here, $x, y,$ and $t$ are the spatial and temporal location of the receivers, and $\xi, \eta,$ and $\tau$ are the spatial and temporal locations of the source. Thus $r$ is the spatial distance between a source-receiver pair. 
+
+The Green's function, by construction, satisfies the inhomogeneous wave equation with a unit impulse source $\delta$:
+
+\begin{equation}
+    \left(\frac{1}{c^2}\frac{\partial^2}{\partial t^2} - \nabla^2 \right)g = \delta(x-\xi)\delta(y-\eta)\delta(t-\tau).
+\end{equation}
+
+The solution of this wave equation by a point source $s(\tau)$ at the $(x, y)$ coordinates $(\xi, \eta)$ with a source function can be written as the temporal convolution of $s$ with the Green’s function \cite{akiQuantitativeSeismology2002},
+
+\begin{equation}
+    u(t, x, y) = s \star g = \int^t_0 s(\tau)g(t, x, y \mid \xi, \eta, \tau) d\tau.
+    \label{eq:conv_integral}
+\end{equation}
+
+In Appendix \ref{app:conv_reduct}, we show that this integral can be written
+
+\begin{equation}
+    u(r, t) = \frac{1}{2\pi} \int^{\cosh^{-1}(\nicefrac{t}{a})}_{0}s(t - a\cosh(\nu)) d\nu,
+    \label{eq:reduced_conv}
+\end{equation}
+
+where $a = \nicefrac{r}{c}$ is the time taken for a wave with speed $c$ to move the source-receiver distance $r$, and $\nu$ is a dimensionless dummy integration variable. Rewritting in this way bypasses the denominator singularity in Equation \eqref{eq:greens}, stabilising the discrete integration. To compute the discrete integral, we use Gauss-Legendre quadrature.
+
+Thus, in a homogeneous domain, an analytical solution to the 2D wave equation can be determined by convolving the wavelet in time with the Green's function. This gives us a means to benchmark the performance of ODIL for solving the wave equation against the Devito solvers by computing metrics on arrival traces observed at discrete locations. We compute the norms of the misfit between the observed and analytical traces normalised to unity at various receiver locations in the computational domain such that the norm represents the difference in the shapes of the traces independent of the wavelet scalings employed in Devito and our code. 
+
+Devito uses approximate damping boundary conditions, so spurious boundary reflections are present in observed traces. Thus, we restrict trace measurements to a window between the time of arrival for the direct wave, $t_a = \nicefrac{r}{c}$ and a conservative lower bound on the arrival time of the first spurious reflection, $t_r = \nicefrac{ds + dr}{c}$, where $ds$ is the distance of the source to the nearest wall, $dr$ is the distance of the receiver to that wall, and $c$ is the constant wave speed in the medium.
 
 \section{Discussion}
 
@@ -517,6 +583,89 @@ which reads analogously in $y$ and $t$. The coefficients $c_p$ are obtained via 
 \caption{Coefficients for centred finite difference approximations of the second derivative.}
 \label{tab:fd_coefficients}
 \end{table}
+
+\subsection{Convolution Integral Reduction}
+\label{app:conv_reduct}
+In Equation \eqref{eq:reduced_conv} we introduce a reduced form of the convolution integral
+
+\begin{equation}
+    u(t, x, y) = s \star g = \int^t_0 s(\tau)g(t, x, y \mid \xi, \eta, \tau) d\tau,
+\end{equation}
+
+that evaluates the convolution of the Ricker source term (Equation \eqref{eq:ricker}) with the analytical Green's function for the 2D wave equation (Equation \eqref{eq:greens}),
+
+\begin{equation}
+    g(t, r | \tau) = \frac{1}{2\pi}\frac{H(t - \tau - \nicefrac{r}{c})}{\sqrt{(t-\tau)^2 - \nicefrac{r^2}{c^2}}}.
+\end{equation}
+
+With $a = \nicefrac{r}{c}$, the time taken for a wave to move a distance $r$ through a homogeneous medium with wave speed $c$, the Heaviside function reads
+
+\begin{equation}
+    H(t - \tau - a) = 
+    \begin{cases}
+    1 & t - \tau - a > 0 \\
+    0 & \text{otherwise}
+    \end{cases}
+\end{equation}
+
+and so we require
+
+\begin{equation}
+    t - \tau - a > 0 \quad \Longleftrightarrow \quad \tau < t - a.
+\end{equation}
+
+Thus, our upper integration limit reduces to $t-a$ up to which $H = 1$, leading to the explicit integral
+
+\begin{equation}
+    u(r, t) = \frac{1}{2\pi} \int^{t-a}_0 \frac{s(\tau)}{\sqrt{(t-\tau)^2 - a^2}} d\tau.
+\end{equation}
+
+If we define the duration $\mathcal{T} = t - \tau$, then the differential and limits change:
+
+\begin{align*}
+    \frac{d\mathcal{T}}{d\tau} = -1 &\quad \Longrightarrow \quad d\mathcal{T} = -d\tau\\
+    \tau \in [0, t-a] &\quad \Longrightarrow \quad  \mathcal{T} \in [t, a]
+\end{align*}
+
+Making the substitution $\tau = t - \mathcal{T}$ and $d\tau = -d\mathcal{T}$, we have
+
+\begin{equation}
+    u(r, t) = \frac{1}{2\pi} \int^{a}_t \frac{s(t-\mathcal{T})}{\sqrt{\mathcal{T}^2 - a^2}} -d\mathcal{T},
+\end{equation}
+
+To make our interval increasing, we negate the interval and flip the limits, cancelling the negative the differential introduced, yielding
+
+\begin{equation}
+    u(r, t) = \frac{1}{2\pi} \int^t_a \frac{s(t-\mathcal{T})}{\sqrt{\mathcal{T}^2 - a^2}} d\mathcal{T}, \quad t > a.
+\end{equation}
+
+The intuitive explanation of the limits here is that we are convolving the Ricker wavelet and the Green's function between the arrival time $a = r/c$ and the current time $t$.
+
+Now we are finally in the position to make a $\cosh$ substitution to remove the singular denominator. Let $\mathcal{T} = a\cosh{\nu}$ for the dimensionless dummy integration variable $\nu: \nu \geq 0$. Then
+
+\begin{align}
+    \frac{d\mathcal{T}}{d\nu} = a\sinh(\nu) \quad &\Rightarrow \quad d\mathcal{T} = a\sinh(\nu) d\nu,\\
+    \mathcal{T} \in [a, t] \quad &\Rightarrow \quad \nu \in \left[\cosh^{-1}\left(\frac{a}{a}\right), \cosh^{-1}\left(\frac{t}{a}\right)\right] \\ & \qquad \ \ \ = \left[0, \cosh^{-1}\left(\frac{t}{a}\right)\right] 
+\end{align}
+
+and the denominator in the integral becomes
+
+\begin{equation}
+    \sqrt{\mathcal{T}^2 - a^2} = \sqrt{a^2\cosh^2(\nu) - a^2}  = a\sqrt{\cosh^2(\nu) - 1}\\
+    = a\sinh{\nu},
+\end{equation}
+
+by the identity $\cosh^2(x) - \sinh^2(x) \equiv 1$. Substituting in these results yields
+
+\begin{equation}
+    u(r, t) = \frac{1}{2\pi} \int^{\cosh^{-1}(\nicefrac{t}{a})}_0 \frac{s(t-a\cosh(\nu))}{a\sinh(\nu)} (a\sinh(\nu)d\nu),
+\end{equation}
+
+which simplifies nicely down to the result stated in Equation \eqref{eq:reduced_conv}:
+
+\begin{equation}
+    u(r, t) = \frac{1}{2\pi} \int^{\cosh^{-1}(\nicefrac{t}{a})}_0 s(t-a\cosh(\nu)) d\nu.
+\end{equation}
 
 \newpage
 % References

@@ -1,4 +1,202 @@
 
+@article{hicksArbitrarySourceReceiver2002,
+	title = {Arbitrary source and receiver positioning in finite-difference schemes using {Kaiser} windowed sinc functions},
+	volume = {67},
+	issn = {0016-8033},
+	url = {https://doi.org/10.1190/1.1451454},
+	doi = {10.1190/1.1451454},
+	abstract = {In finite-difference methods a seismic source can be implemented using either initial wavefield values or body forces. However, body forces can only be specified at finite-difference nodes, and, if using initial values, a source cannot be located close to a reflecting boundary or interface in the model. Hence, difficulties can exist with these schemes when the region surrounding a source is heterogeneous or when a source either is positioned between nodes or is arbitrarily close to a free surface.A completely general solution to these problems can be obtained by using Kaiser windowed sinc functions to define a small region around the true source location that contains several nodal body forces. Both monopole and dipole point sources can be defined, enabling many source types to be implemented in either acoustic or elastic media. Such a function can also be used to arbitrarily locate receivers. If the number of finite-difference nodes per wavelength is four or more (and with a source region half-width of only four nodes) this scheme results in insignificant phase errors and in amplitude errors of no more than 0.1\%. Numerical examples for sources located less than one node from either a free surface or an image source demonstrate that the scheme can be used successfully for any surface–source or multisource configuration.},
+	number = {1},
+	urldate = {2026-08-03},
+	journal = {Geophysics},
+	author = {Hicks, Graham. J.},
+	month = jan,
+	year = {2002},
+	pages = {156--166},
+}
+
+@book{greens-wave,
+	address = {New York},
+	edition = {2},
+	title = {Green's {Functions} with {Applications}},
+	isbn = {978-1-315-37141-2},
+	doi = {10.1201/9781315371412},
+	abstract = {Since publication of the first edition over a decade ago, Green’s Functions with Applications has provided applied scientists and engineers with a systematic approach to the various methods available for deriving a Green’s function. This fully revised Second Edition retains the same purpose, but has been meticulously updated to reflect the current state of the art. 
+The book opens with necessary background information: a new chapter on the historical development of the Green’s function, coverage of the Fourier and Laplace transforms, a discussion of the classical special functions of Bessel functions and Legendre polynomials, and a review of the Dirac delta function. 
+The text then presents Green’s functions for each class of differential equation (ordinary differential, wave, heat, and Helmholtz equations) according to the number of spatial dimensions and the geometry of the domain. Detailing step-by-step methods for finding and computing Green’s functions, each chapter contains a special section devoted to topics where Green’s functions particularly are useful. For example, in the case of the wave equation, Green’s functions are beneficial in describing diffraction and waves. 
+To aid readers in developing practical skills for finding Green’s functions, worked examples, problem sets, and illustrations from acoustics, applied mechanics, antennas, and the stability of fluids and plasmas are featured throughout the text. A new chapter on numerical methods closes the book.
+Included solutions and hundreds of references to the literature on the construction and use of Green's functions make Green’s Functions with Applications, Second Edition a valuable sourcebook for practitioners as well as graduate students in the sciences and engineering.},
+	publisher = {Chapman and Hall/CRC},
+	author = {Duffy, Dean G.},
+	month = mar,
+	year = {2015},
+}
+
+@book{Chapter4Greens,
+	title = {Chapter 4 {Green}’s {Functions} for the {Wave} {Equation}},
+	isbn = {978-1-4987-9854-9},
+	url = {https://learning.oreilly.com/library/view/greens-functions-with/9781498798549/K23800_C004.xhtml},
+	abstract = {Chapter 4
+Green’s Functions for the Wave Equation
+ In Chapter 3, we showed how Green’s functions could be used to solve initial- and boundary-value problems involving ordinary differential...},
+	language = {en},
+	urldate = {2026-07-31},
+}
+
+@book{Chapter4Greens-dead,
+	title = {Chapter 4 {Green}’s {Functions} for the {Wave} {Equation}},
+	isbn = {978-1-4987-9854-9},
+	url = {https://learning.oreilly.com/library/view/greens-functions-with/9781498798549/K23800_C004.xhtml},
+	abstract = {Chapter 4
+Green’s Functions for the Wave Equation
+ In Chapter 3, we showed how Green’s functions could be used to solve initial- and boundary-value problems involving ordinary differential...},
+	language = {en},
+	urldate = {2026-07-28},
+}
+
+@incollection{cond-number,
+	title = {Chapter {III}: {Conditioning} and stability},
+	url = {https://epubs.siam.org/doi/abs/10.1137/1.9780898719574.ch3},
+	doi = {10.1137/1.9780898719574.ch3},
+	abstract = {In this third part of the book we turn to a systematic discussion of two fundamental issues of numerical analysis that until now we have only skirted. Conditioning pertains to the perturbation behavior of a mathematical problem. Stability pertains to the perturbation behavior of an algorithm used to solve that problem on a computer.},
+	booktitle = {Numerical linear algebra},
+	note = {tex.eprint: https://epubs.siam.org/doi/pdf/10.1137/1.9780898719574.ch3},
+	pages = {89--144},
+}
+
+@article{NumericalLinearAlgebra,
+	title = {Numerical {Linear} {Algebra}, {Twenty}-fifth {Anniversary} {Edition} {\textbar} {Part} {III}: {Conditioning} and {Stability}},
+	shorttitle = {Numerical {Linear} {Algebra}, {Twenty}-fifth {Anniversary} {Edition} {\textbar} {Part} {III}},
+	url = {https://epubs.siam.org/doi/10.1137/1.9781611977165.ch3},
+	abstract = {Lecture 12. Conditioning and Condition Numbers In this third part of the book we turn to a systematic discussion of two fundamental issues of numerical analysis that until now we have only skirted. Conditioning pertains to the perturbation behavior of a mathematical problem, Stability pertains to the perturbation behavior of an algorithm used to solve that problem on a computer.},
+	language = {en},
+	urldate = {2026-07-31},
+	journal = {Other Titles in Applied Mathematics},
+}
+
+@article{gmres,
+	title = {{GMRES}: a generalized minimal residual algorithm for solving nonsymmetric linear systems},
+	volume = {7},
+	url = {https://doi.org/10.1137/0907058},
+	doi = {10.1137/0907058},
+	abstract = {We present an iterative method for solving linear systems, which has the property of minimizing at every step the norm of the residual vector over a Krylov subspace. The algorithm is derived from the Arnoldi process for constructing an \$l\_2 \$-orthogonal basis of Krylov subspaces. It can be considered as a generalization of Paige and Saunders’ MINRES algorithm and is theoretically equivalent to the Generalized Conjugate Residual (GCR) method and to ORTHODIR. The new algorithm presents several advantages over GCR and ORTHODIR.},
+	number = {3},
+	journal = {SIAM Journal on Scientific and Statistical Computing},
+	author = {Saad, Youcef and Schultz, Martin H.},
+	year = {1986},
+	note = {tex.eprint: https://doi.org/10.1137/0907058},
+	pages = {856--869},
+}
+
+@misc{GMRESGeneralizedMinimal,
+	title = {{GMRES}: {A} {Generalized} {Minimal} {Residual} {Algorithm} for {Solving} {Nonsymmetric} {Linear} {Systems}},
+	url = {https://epubs.siam.org/doi/abs/10.1137/0907058},
+	urldate = {2026-07-31},
+	author = {Saad, Youcef and Schultz, Martin H.},
+}
+
+@misc{GMRESGeneralizedMinimala,
+	title = {{GMRES}: {A} {Generalized} {Minimal} {Residual} {Algorithm} for {Solving} {Nonsymmetric} {Linear} {Systems}},
+	shorttitle = {{GMRES}},
+	url = {https://epubs.siam.org/doi/epdf/10.1137/0907058},
+	doi = {10.1137/0907058},
+	language = {en},
+	urldate = {2026-07-31},
+	doi = {10.1137/0907058},
+}
+
+@incollection{greenbaum3ErrorBounds1997,
+	series = {Frontiers in {Applied} {Mathematics}},
+	title = {3. {Error} {Bounds} for {CG}, {MINRES}, and {GMRES}},
+	isbn = {978-0-89871-396-1},
+	url = {https://epubs.siam.org/doi/10.1137/1.9781611970937.ch3},
+	doi = {10.1137/1.9781611970937.ch3},
+	abstract = {It was shown in Chapter 2 that the CG, MINRES, and GMRES algorithms each generate the optimal approximate solution from a Krylov subspace, where “optimal” is taken to mean having an error with minimal A-norm in the case of CG or having a residual with minimal 2-norm in the case of MINRES and GMRES. In this chapter we derive bounds on the appropriate error norm for the optimal approximation from a Krylov subspace.A goal is to derive a sharp upper bound on the reduction in the A-norm of the error for CG or in the 2-norm of the residual for both MINRES and GMRES—that is, an upper bound that is independent of the initial vector but that is actually attained for certain initial vectors. This describes the worst-case behavior of the algorithms (for a given matrix A). It can sometimes be shown that the “typical” behavior of the algorithms is not much different from the worst-case behavior. That is, if the initial vector is random, then convergence may be only moderately faster than for the worst initial vector. For certain special initial vectors, however, convergence may be much faster than the worst-case analysis would suggest. Still, it is usually the same analysis that enables one to identify these “special” initial vectors, and it is often clear how the bounds must be modified to account for special properties of the initial vector.For normal matrices, a sharp upper bound on the appropriate error norm is known. This is not the case for nonnormal matrices,and a number of possible approaches to this problem are discussed in section 3.2.},
+	urldate = {2026-07-31},
+	booktitle = {Iterative {Methods} for {Solving} {Linear} {Systems}},
+	publisher = {Society for Industrial and Applied Mathematics},
+	author = {Greenbaum, Anne},
+	month = jan,
+	year = {1997},
+	pages = {49--60},
+}
+
+@misc{3ErrorBounds,
+	title = {3. {Error} {Bounds} for {CG}, {MINRES}, and {GMRES}},
+	url = {https://epubs.siam.org/doi/epdf/10.1137/1.9781611970937.ch3},
+	language = {en},
+	urldate = {2026-07-31},
+	note = {ISBN: 9781611970937},
+}
+
+@book{PracticalMethodsOptimization2000,
+	edition = {1},
+	title = {Practical {Methods} of {Optimization}},
+	url = {https://onlinelibrary.wiley.com/doi/10.1002/9781118723203},
+	doi = {10.1002/9781118723203},
+	urldate = {2026-07-31},
+	publisher = {John Wiley \& Sons, Ltd},
+	year = {2000},
+	doi = {10.1002/9781118723203},
+	note = {\_eprint: https://onlinelibrary.wiley.com/doi/pdf/10.1002/9781118723203},
+}
+
+@article{virtanenSciPy10Fundamental2020,
+	title = {{SciPy} 1.0: fundamental algorithms for scientific computing in {Python}},
+	volume = {17},
+	copyright = {2020 The Author(s)},
+	issn = {1548-7105},
+	shorttitle = {{SciPy} 1.0},
+	url = {https://www.nature.com/articles/s41592-019-0686-2},
+	doi = {10.1038/s41592-019-0686-2},
+	abstract = {SciPy is an open-source scientific computing library for the Python programming language. Since its initial release in 2001, SciPy has become a de facto standard for leveraging scientific algorithms in Python, with over 600 unique code contributors, thousands of dependent packages, over 100,000 dependent repositories and millions of downloads per year. In this work, we provide an overview of the capabilities and development practices of SciPy 1.0 and highlight some recent technical developments.},
+	language = {en},
+	number = {3},
+	urldate = {2026-07-31},
+	journal = {Nature Methods},
+	publisher = {Nature Publishing Group},
+	author = {Virtanen, Pauli and Gommers, Ralf and Oliphant, Travis E. and Haberland, Matt and Reddy, Tyler and Cournapeau, David and Burovski, Evgeni and Peterson, Pearu and Weckesser, Warren and Bright, Jonathan and van der Walt, Stéfan J. and Brett, Matthew and Wilson, Joshua and Millman, K. Jarrod and Mayorov, Nikolay and Nelson, Andrew R. J. and Jones, Eric and Kern, Robert and Larson, Eric and Carey, C. J. and Polat, İlhan and Feng, Yu and Moore, Eric W. and VanderPlas, Jake and Laxalde, Denis and Perktold, Josef and Cimrman, Robert and Henriksen, Ian and Quintero, E. A. and Harris, Charles R. and Archibald, Anne M. and Ribeiro, Antônio H. and Pedregosa, Fabian and van Mulbregt, Paul},
+	month = mar,
+	year = {2020},
+	pages = {261--272},
+}
+
+@article{wapenaarMultipleReflectionsHuygens2025,
+	title = {Multiple {Reflections} on {Huygens}' {Principle}},
+	volume = {73},
+	copyright = {© 2025 The Author(s). Geophysical Prospecting published by John Wiley \& Sons Ltd on behalf of European Association of Geoscientists \& Engineers.},
+	issn = {1365-2478},
+	url = {https://onlinelibrary.wiley.com/doi/abs/10.1111/1365-2478.70038},
+	doi = {10.1111/1365-2478.70038},
+	abstract = {According to Huygens' principle, all points on a wave front act as secondary sources emitting spherical waves and the envelope of these spherical waves forms a new wave front. In the mathematical formulation of Huygens' principle, the waves emitted by the secondary sources are represented by Green's functions. In many present-day applications of Huygens' principle, these Green's functions are replaced by their time-reversed versions, thus forming a basis for backpropagation, imaging, inversion, seismic interferometry, etc. However, when the input wave field is available only on a single open boundary, this approach has its limitations. In particular, it does not properly account for multiply reflected waves. This is remedied by a modified form of Huygens' principle, in which the Green's functions are replaced by focusing functions. The modified Huygens' principle forms a basis for imaging, inverse scattering, monitoring of induced sources, etc., thereby properly taking multiply reflected waves into account.},
+	language = {en},
+	number = {6},
+	urldate = {2026-07-31},
+	journal = {Geophysical Prospecting},
+	author = {Wapenaar, Kees},
+	year = {2025},
+	note = {\_eprint: https://onlinelibrary.wiley.com/doi/pdf/10.1111/1365-2478.70038},
+	pages = {e70038},
+}
+
+@article{louboutinDevitoV310Embedded2019,
+	title = {Devito (v3.1.0): an embedded domain-specific language for finite differences and geophysical exploration},
+	volume = {12},
+	issn = {1991-9603},
+	shorttitle = {Devito (v3.1.0)},
+	url = {http://arxiv.org/abs/1808.01995},
+	doi = {10.5194/gmd-12-1165-2019},
+	abstract = {We introduce Devito, a new domain-specific language for implementing high-performance finite difference partial differential equation solvers. The motivating application is exploration seismology where methods such as Full-Waveform Inversion and Reverse-Time Migration are used to invert terabytes of seismic data to create images of the earth's subsurface. Even using modern supercomputers, it can take weeks to process a single seismic survey and create a useful subsurface image. The computational cost is dominated by the numerical solution of wave equations and their corresponding adjoints. Therefore, a great deal of effort is invested in aggressively optimizing the performance of these wave-equation propagators for different computer architectures. Additionally, the actual set of partial differential equations being solved and their numerical discretization is under constant innovation as increasingly realistic representations of the physics are developed, further ratcheting up the cost of practical solvers. By embedding a domain-specific language within Python and making heavy use of SymPy, a symbolic mathematics library, we make it possible to develop finite difference simulators quickly using a syntax that strongly resembles the mathematics. The Devito compiler reads this code and applies a wide range of analysis to generate highly optimized and parallel code. This approach can reduce the development time of a verified and optimized solver from months to days.},
+	number = {3},
+	urldate = {2026-07-31},
+	journal = {Geoscientific Model Development},
+	author = {Louboutin, Mathias and Lange, Michael and Luporini, Fabio and Kukreja, Navjot and Witte, Philipp A. and Herrmann, Felix J. and Velesko, Paulius and Gorman, Gerard J.},
+	month = mar,
+	year = {2019},
+	note = {arXiv:1808.01995 [cs.DM]},
+	pages = {1165--1187},
+}
+
 @book{akiQuantitativeSeismology2002,
 	address = {Place of publication not identified},
 	edition = {Second Edition.},
@@ -21,17 +219,6 @@
 @misc{Knovel3Representation,
 	title = {Knovel - 3. {Representation} of {Seismic} {Sources}},
 	url = {https://app-knovel-com.iclibezp1.cc.ic.ac.uk/kn/resources/kt00U4GHG1/kpQSE00001/pdf?b-toc-cid=kpQSE00001&b-toc-root-slug=quantitative-seismology&b-toc-title=Quantitative%20Seismology%20%282nd%20Edition%29&b-toc-url-slug=introduction&kpromoter=federation},
-	urldate = {2026-07-28},
-}
-
-@book{Chapter4Greens,
-	title = {Chapter 4 {Green}’s {Functions} for the {Wave} {Equation}},
-	isbn = {978-1-4987-9854-9},
-	url = {https://learning.oreilly.com/library/view/greens-functions-with/9781498798549/K23800_C004.xhtml},
-	abstract = {Chapter 4
-Green’s Functions for the Wave Equation
- In Chapter 3, we showed how Green’s functions could be used to solve initial- and boundary-value problems involving ordinary differential...},
-	language = {en},
 	urldate = {2026-07-28},
 }
 

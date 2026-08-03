@@ -64,6 +64,24 @@ Other errors arise when solving the wave equation in particular. Numerical dispe
 
 Optimising a Discrete Loss (ODIL) \cite{karnakovSolvingInverseProblems2024} has emerged as a novel technique for the numerical solution of PDEs and their associated inverse problems. ODIL can approximate the solution to a PDE by means of minimising a functional $\mathcal{L}$ that encapsulates the discretised PDE, and boundary and initial conditions $g^n_i$. In the functional, the PDE is expressed in a residual form in terms of the field of interest, which is optimised directly. Thus, if a unique minimiser exists, it is the solution field which satisfies the PDE and boundary conditions exactly.
 
+For the present work, the defining research question (RQ) is
+
+\begin{center}
+\emph{
+Are there regimes where ODIL is a preferable over finite-difference based time stepping for solving the 2D wave equation?
+}
+\end{center}
+
+To support this objective, we intend to address the following questions in particular
+
+\begin{itemize}
+    \item RQ1: Are there regimes where ODIL has favourable accuracy properties?
+    \item RQ2: Are there regimes where ODIL has favourable computational performance properties?
+    \item RQ3: How does ODIL handle the nuances of the numerical modelling of waves?
+\end{itemize}
+
+The outcome of this study will be a set of guidelines for using ODIL to solve the forward acoustic wave equation problem in two dimensions.
+
 \section{Background}
 \label{sect:backg}
 
@@ -354,6 +372,19 @@ At the computational boundaries, the interior finite difference stencil is repla
 
 where $\delta_{tt}$ denotes the discrete second derivative operator in time, $\delta_{tn}$ the discrete mixed derivative operator, and $\delta_{nn}$ the discrete second derivative of the normal coordinate. These differentiation operators are approximated by first and second order centred finite differences as in Equations \eqref{eq:uttcd} - \eqref{eq:uyycd}.
 
+\subsubsection{Discrete Source Injection}
+\label{subsect:disc_source_inj}
+Source injection in the discrete domain is handled using Hicks' method of Kaiser-windowed sinc interpolation \cite{hicksArbitrarySourceReceiver2002}. This enables sources to be positioned at arbitrary physical coordinates rather than being restricted to the nearest grid node, thereby reducing grid positioning artefacts and improving the accuracy of source injection.
+
+The interpolation of a field value $f$ at an arbitrary point $\mathbf{x}$ using Hicks' approach can be computed by
+
+\begin{equation}
+    f(\mathbf{x}) = \sum^r_{n=-r}f_n \ \text{sinc}\left(\frac{\mathbf{x} - \mathbf{x}_n}{\Delta x}\right) w\left(\frac{\mathbf{x} - \mathbf{x}_n}{\alpha} \right),
+    \label{eq:hicks}
+\end{equation}
+
+where $r$ denotes the interpolation window width, $f_n$ the field values at the grid nodes, $\mathbf{x}$ and $\mathbf{x}_n$ the field interpolation location and grid node location (in spatial coordinates), respectively. $\Delta x$ is the grid spacing, and $w$ is the Kaiser window function that modulates the $\text{sinc}$ function as defined by Hicks \cite{hicksArbitrarySourceReceiver2002}. The Kaiser function modulation has the effect of truncating and smoothly tapering the $\text{sinc}$ kernel, reducing interpolation error. Readers are encouraged to consult Hicks' work for more information on the source injection methodology.
+
 \subsubsection{Enforcing the Boundary Condition}
 \label{subsubsect:ghost_nodes}
 
@@ -418,91 +449,154 @@ Equation \eqref{eq:disc_higdon} is then assembled for every boundary node and ti
 
 where $\mathbf{u}_b$ are the boundary columns of the solution array. To interface with the aforementioned matrix-free philosophy, we apply the boundary conditions as hard constraints by replacing the corresponding rows of the discrete wave operator with the boundary constraint equations.
 
-\subsubsection{Solution}
+\subsubsection{Solving the ODIL problem}
 
-Gauss Newton linearises this around the current iterate $u_k$ such that
+The ODIL problem for the solution of the 2D wave equation is
 
-$$r(u+\delta u) \approx r_k + J_k \delta u,$$
+\begin{equation}
+    \min_\mathbf{u} \|A\mathbf{u} - s\|^2.
+    \label{eq:odil_wave_problem}
+\end{equation}
 
-notice for our linear system that the Jacobian for the $k$-th iterate is simply $A$. Our loss is then
+We solve this using generic methods in the SciPy library \cite{virtanenSciPy10Fundamental2020}, and a method derived from a Gauss-Newton approach.
 
-$$L(u) = \frac 12 \|r_k - A\delta u\|^2,$$
+The Guass-Newton method is an iterative algorithm for solving non-linear least squares optimisation problems that employs an approximation of the Hessian, removing the need to compute second derivatives. In the following discussion, we show how applying the Gauss-Newton algorithm to our problem reduces to a least squares solve. 
 
-whose unique minimiser is the solution to the normal equations
+At each iteration, the Gauss-Newton algorithm seeks to find the update $\delta \mathbf u$ such that
 
-$$A^TA\delta u = -A^Tr.$$
+\begin{equation}
+    \mathbf{u}_{k+1} = \mathbf{u} + \delta \mathbf{u},
+    \label{eq:u_update}
+\end{equation}
 
-However since $A$ is nonsingular we can write
+drives the solution field $\mathbf{u}$ towards a minimum.
 
-$$\underbrace{(A^T)^{-1}A^T}_I \delta u = -\underbrace{(A^T)^{-1}A^T}_I r,$$
+For the residual at iteration $k$,
 
-which reduces to
+\begin{equation}
+    r(\mathbf{u}+\delta \mathbf{u}) \approx \mathbf{r}_k + \mathbf{J}_k \delta \mathbf{u},
+    \label{eq:gn_residual}
+\end{equation}
 
-$$A\delta u = -r.$$
+where
 
-Thus the unique minimiser of the normal equations in our linear case is merely the solution to the above linear equation. Considering our loss is quadratic, Gauss Newton converges in exactly one step, and minimising our loss becomes a problem of solving the above linear equation.
+\begin{equation}
+    \mathbf{J}_k \equiv \mathbf{J}(\mathbf{u}_k) = \frac{\partial \mathbf{r}}{\partial \mathbf{u}},
+    \label{eq:jac_residual}
+\end{equation}
 
-\subsubsection{Preconditioning}
+is the Jacobian of the residual, the solution update $\delta \mathbf{u}$ can be determined by solving the normal equations,
 
-However, the conditioning number of that system is typically large, and increases superlinearly with the number of time levels in the discretisation. This warrants a time-aware preconditioner to allow the inner solve to converge quickly.
+\begin{equation}
+    J_k^T J_k \delta \mathbf{u} = - J^T \mathbf{r}.
+    \label{eq:normal_eqs}
+\end{equation}
 
-We address this using an $\omega$-circulant preconditioning matrix \cite{danieliAllatonceSolutionLinear}. Our temporal operator is nearly circulant, it is just missing the periodic diagonal edge values. The core idea is that a circulant matrix operator can be trivially diagonalised by its Fourier modes according to
+Notice however that, for our linear problem, $J_k = A$, the constant discretisation matrix. The normal equations are then
 
-$$D_{tt}^\omega =   F^{-1}\Lambda F,$$
+\begin{equation}
+    A^T A\delta \mathbf{u} = - A^T \mathbf{r}.
+    \label{eq:normal_eqs}
+\end{equation}
 
-where $\Lambda$ is the diagonal matrix of Fourier eigenvalues. Assuming the solution is composed of a single Fourier mode such that
-$$u = e^{i\theta n}$$
+We can rewrite this as
+
+\begin{equation}
+    A^T(A\delta \mathbf{u} + r) = 0,
+\end{equation}
+
+which implies that
+
+\begin{equation}
+    A\delta \mathbf{u} + r = 0,
+\end{equation}
+
+since $A$ is non-zero. Thus the unique minimiser of the normal equations is found by solving
+
+\begin{equation}
+    A\delta \mathbf{u} = - r,
+\end{equation}
+
+for the update, $\delta \mathbf{u}$. This is a reflection of the property of the Gauss-Newton algorithm that it converges in exactly one outer iteration for linear problems \cite{PracticalMethodsOptimization2000}.
+
+In summary, solving the ODIL optimisation problem reduces to solving the solving the normal equations for $\delta \mathbf{u}$ once, then applying the update to the solution as in Equation \eqref{eq:u_update}, which should converge in exactly one update. Of course, because our system is large, direct solves would incur a significant computational cost paid in memory and runtime for LU factorisations. Instead, we use an iterative method. 
+
+GMRES \cite{gmres} is an iterative method for solving non-linear systems that requires only matrix-vector products, avoiding the requirement for factorisation and interfacing exactly with our aforementioned matrix-free approach. In addition, GMRES solves $A \delta \mathbf{u} = -r$ directly, which avoids squaring the conditioning number of the system. 
+
+The conditioning number of a matrix
+
+\begin{equation}
+    \kappa(A) = \|A\|\|A^{-1}\|,
+\end{equation}
+
+is equivalent to the ratio of the largest singular value to the smallest. The conditioning number is a measure of the tendency of small perturbations in $\mathbf{r}$ to produce large perturbations in the solution $\delta \mathbf{u}$, where a larger number indicates a tendency to produce larger solution perturbations. In the context of physical data, a large conditioning number has detrimental impacts on the quality of the solution, since such small perturbations are unavoidable, entering in the form of noise contamination in observed signals and discretisation error in the numerical solution. 
+
+In general, the convergence of iterative linear solvers is poor for systems with large conditioning numbers \cite{cond-number}. In particular, the GMRES algorithm displays poor convergence properties when the singular of the system are loosely clustered \cite{greenbaum3ErrorBounds1997}. The issue we face is that the linear system we seek to solve is strongly ill-conditioned, with poor clustering of the singular values, as illustrated in Figure \ref{fig:svd}. Thus we have motivation to precondition our linear system in an attempt to improve the clustering of the singular values such that our linear solve improves in its rate of convergence.
+
+\subsubsection{Preconditioning the Gauss-Newton Inner Solve}
+
+In order to address the ill-conditioning of our linear system, we seek a preconditioner $M$ such that $M^{-1}$ is a good approximation of the inverse of our global operator $A$. In particular, we should hope that the inverse of $M$ is cheaper to compute, and that multiplying by $M^{-1}$ improves the conditioning of our system. We employee an $\alpha$-circulant preconditioning matrix \cite{ganderParaDiagParallelintimeAlgorithms2020} to achieve exactly this. Our temporal operator is not exactly circulant due to the initial conditions, but it differs from a circulant matrix only in its corner entries. Thus, a circulant matrix $\tilde{D}_{tt}$ is an appropriate approximation of our temporal operator $D_{tt}$. 
+
+Circulant matrices have the property of being trivially diagonalisable by Fourier transform,
+
+\begin{equation}
+    \tilde{D}_{tt} =   F^{-1}\Lambda F.
+    \label{eq:circulant-fft}
+\end{equation}
+
+where $F$ is the Discrete Fourier Transform (DFT) matrix, and $\Lambda$ is a diagonal matrix whose entries are the eigenvalues of the circulant approximation. Using the property of diagonal matrices that their inverse is computed merely by replacing the non-zero entries with the reciprocal of those diagonal entries, it follows that computing the inverse of a circulant matrix can be orchestrated efficiently by means of computing the Fast Fourier Transform (FFT) in time, reciprocating the diagonal, and performing the Inverse FFT (IFFT).
 
 \begin{figure}[!h]
     \centering
     \includegraphics[width=0.9\linewidth]{latex/figures/fig2_sv_distribution.png}
-    \caption{Sparsity plot of the global operator matrix $A$, including boundary terms (a), and circulant approximation $M$, the preconditioner (b), along with their singular value distributions (c, d). Small singular values in the unpreconditioned operator lead to severe ill-conditioning and unstable solves of the linear system in the Gauss Newton optimisation process, which the preconditioner addresses.}
+    \caption{Sparsity plot of the global operator matrix $A$ (a) including boundary equations, and circulant approximation $M$ (b), the preconditioner, along with their singular value distributions (c, d). Small singular values in the unpreconditioned operator lead to severe ill-conditioning and unstable solves of the linear system in the Gauss Newton optimisation process, which the preconditioner addresses.}
     \label{fig:svd}
 \end{figure}
 
-\section{Results}
-
 \subsection{Measuring accuracy}
 
-We use the form of the time-domain Green's function of the two dimensional wave equation outlined in \cite{Chapter4Greens}, that is,
+In this work, we benchmark our implementation of the solution of the wave equation using the ODIL framework against an established finite differencing engine, Devito \cite{louboutinDevitoV310Embedded2019}. In order to compare on the basis of accuracy, we must establish a method for obtaining a solution to compare results against that is unbiased. Primarily, it must be independent of the grid and scaling choices that both methods enforce (since they differ internally), and, considering both methods use approximate absorbing boundary conditions, free of contamination from any spurious boundary reflections. 
+
+In a homogeneous domain, an analytical solution to the 2D wave equation with a transient forcing wavelet $s(t)$ can be obtained by convolving the source wavelet in time with the Green's function of the wave equation \cite{wapenaarMultipleReflectionsHuygens2025},
 
 \begin{equation}
-    g(t, r | \tau) = \frac{1}{2\pi}\frac{H(t - \tau - \nicefrac{r}{c})}{\sqrt{(t-\tau)^2 - \nicefrac{r^2}{c^2}}}.
-    \label{eq:greens}
-\end{equation}
-
-where $H$ is the Heaviside step function, $r^2 = (x-\xi)^2 + (y-\eta)^2$, $-\infty < x, y, \xi,\ \eta < \infty$ and $0 < t, \tau$. Here, $x, y,$ and $t$ are the spatial and temporal location of the receivers, and $\xi, \eta,$ and $\tau$ are the spatial and temporal locations of the source. Thus $r$ is the spatial distance between a source-receiver pair. 
-
-The Green's function, by construction, satisfies the inhomogeneous wave equation with a unit impulse source $\delta$:
-
-\begin{equation}
-    \left(\frac{1}{c^2}\frac{\partial^2}{\partial t^2} - \nabla^2 \right)g = \delta(x-\xi)\delta(y-\eta)\delta(t-\tau).
-\end{equation}
-
-The solution of this wave equation by a point source $s(\tau)$ at the $(x, y)$ coordinates $(\xi, \eta)$ with a source function can be written as the temporal convolution of $s$ with the Green’s function \cite{akiQuantitativeSeismology2002},
-
-\begin{equation}
-    u(t, x, y) = s \star g = \int^t_0 s(\tau)g(t, x, y \mid \xi, \eta, \tau) d\tau.
+    u(t, \mathbf{x}, \mathbf{x_s}) = s \star g = \int^t_0 s(\tau)g(t - \tau, \mathbf{x}, \mathbf{x_S}) d\tau,
     \label{eq:conv_integral}
 \end{equation}
 
-In Appendix \ref{app:conv_reduct}, we show that this integral can be written
+where $\mathbf{x_s}$ is the location of the source injection, $\mathbf{x}$ is the location of measurement, i.e., the receiver location, and $\tau$ is the time of observation.
+
+We use the form of the time-domain Green's function of the two dimensional wave equation described in \cite{greens-wave}, i.e.,
+
+\begin{equation}
+    g(t - \tau, r) = \frac{1}{2\pi}\frac{H(t - \tau - \nicefrac{r}{c})}{\sqrt{(t-\tau)^2 - \nicefrac{r^2}{c^2}}}.
+    \label{eq:greens}
+\end{equation}
+
+where $H$ is the Heaviside function, $r = \|\mathbf{x} - \mathbf{x_s}\|$ is the spatial distance between a source-receiver pair.
+
+In Appendix \ref{app:conv_reduct}, we show that the convolution integral can be written
 
 \begin{equation}
     u(r, t) = \frac{1}{2\pi} \int^{\cosh^{-1}(\nicefrac{t}{a})}_{0}s(t - a\cosh(\nu)) d\nu,
     \label{eq:reduced_conv}
 \end{equation}
 
-where $a = \nicefrac{r}{c}$ is the time taken for a wave with speed $c$ to move the source-receiver distance $r$, and $\nu$ is a dimensionless dummy integration variable. Rewritting in this way bypasses the denominator singularity in Equation \eqref{eq:greens}, stabilising the discrete integration. To compute the discrete integral, we use Gauss-Legendre quadrature.
+where $a = \nicefrac{r}{c}$ is the time taken for a wave with speed $c$ to move the source-receiver distance $r$, and $\nu$ is a dimensionless dummy integration variable. Rewriting in this way bypasses the denominator singularity in Equation \eqref{eq:greens}, stabilising the discrete integration. To compute the discrete integral, we use Gauss-Legendre quadrature.
 
-Thus, in a homogeneous domain, an analytical solution to the 2D wave equation can be determined by convolving the wavelet in time with the Green's function. This gives us a means to benchmark the performance of ODIL for solving the wave equation against the Devito solvers by computing metrics on arrival traces observed at discrete locations. We compute the norms of the misfit between the observed and analytical traces normalised to unity at various receiver locations in the computational domain such that the norm represents the difference in the shapes of the traces independent of the wavelet scalings employed in Devito and our code. 
+This gives us a means to benchmark the performance of ODIL for solving the wave equation against the Devito solvers by computing metrics on arrival traces observed at discrete locations. We compute the L2 norm of the misfit between the observed and analytical traces at various receiver locations in the computational domain. We compute the norms on traces normalised to unity such they represent the difference in the shapes of the traces independent of the wavelet scaling choices. 
 
 Devito uses approximate damping boundary conditions, so spurious boundary reflections are present in observed traces. Thus, we restrict trace measurements to a window between the time of arrival for the direct wave, $t_a = \nicefrac{r}{c}$ and a conservative lower bound on the arrival time of the first spurious reflection, $t_r = \nicefrac{ds + dr}{c}$, where $ds$ is the distance of the source to the nearest wall, $dr$ is the distance of the receiver to that wall, and $c$ is the constant wave speed in the medium.
+
+\section{Results}
+
+
 
 \section{Discussion}
 
 \section{Conclusion}
 
+%TC:ignore
 \appendix
 \section{Appendix}
 \subsection{Expansion of the Higdon condition}
@@ -589,14 +683,16 @@ which reads analogously in $y$ and $t$. The coefficients $c_p$ are obtained via 
 In Equation \eqref{eq:reduced_conv} we introduce a reduced form of the convolution integral
 
 \begin{equation}
-    u(t, x, y) = s \star g = \int^t_0 s(\tau)g(t, x, y \mid \xi, \eta, \tau) d\tau,
+    u(t, \mathbf{x}, \mathbf{x_s}) = s \star g = \int^t_0 s(\tau)g(t - \tau, \mathbf{x}, \mathbf{x_S}) d\tau,
 \end{equation}
 
 that evaluates the convolution of the Ricker source term (Equation \eqref{eq:ricker}) with the analytical Green's function for the 2D wave equation (Equation \eqref{eq:greens}),
 
 \begin{equation}
-    g(t, r | \tau) = \frac{1}{2\pi}\frac{H(t - \tau - \nicefrac{r}{c})}{\sqrt{(t-\tau)^2 - \nicefrac{r^2}{c^2}}}.
+    g(t - \tau, r) = \frac{1}{2\pi}\frac{H(t - \tau - \nicefrac{r}{c})}{\sqrt{(t-\tau)^2 - \nicefrac{r^2}{c^2}}}.
 \end{equation}
+
+The denominator of the Green's function can become singular, leading to instability in the discrete integration. Thus we have motivation to find an equivalent form of the convolution integral that avoids this singularity. In the following derivation, we show how the Green's function can be rewritten by means of a hyperbolic substitution.
 
 With $a = \nicefrac{r}{c}$, the time taken for a wave to move a distance $r$ through a homogeneous medium with wave speed $c$, the Heaviside function reads
 
@@ -669,6 +765,7 @@ which simplifies nicely down to the result stated in Equation \eqref{eq:reduced_
 
 \newpage
 % References
+%TC:endignore
 \bibliographystyle{plain}
 \bibliography{references}  % BibTeX references are saved in references.bib
 

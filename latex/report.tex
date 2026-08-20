@@ -311,7 +311,7 @@ In Appendix \ref{app:gn}, we show that, since the residual is linear in $\mathbf
 
 We use an iterative method to solve for the update $\delta \mathbf{u}$, GMRES. GMRES \cite{gmres} requires only matrix-vector products, avoiding the requirement for costly factorisation and aligning with our discussed matrix free approach. In addition, GMRES solves $A \delta \mathbf{u} = -r$ directly, which avoids amplifying any ill-conditioning in the system which would be the case for a least squares solve which introduces a transpose term that has the effect of squaring the conditioning number. 
 
-The convergence of iterative linear solvers is poor for systems with large conditioning numbers \cite{cond-number}. The GMRES algorithm in particular displays poor convergence properties when the singular values of the system are loosely clustered. The all-at-once wave equation operator is strongly ill-conditioned, with poor clustering of its singular values, as illustrated in Figure \ref{fig:svd}. Thus we have motivation to precondition our linear system in an attempt to improve the clustering of the singular values such that we may improve the rate of convergence for our linear solve.
+The convergence of iterative linear solvers is poor for systems with large conditioning numbers \cite{trefethenChapterIIIConditioning1997}. The GMRES algorithm in particular displays poor convergence properties when the singular values of the system are loosely clustered. The all-at-once wave equation operator is strongly ill-conditioned, with poor clustering of its singular values, as illustrated in Figure \ref{fig:svd}. Thus we have motivation to precondition our linear system in an attempt to improve the clustering of the singular values such that we may improve the rate of convergence for our linear solve.
 
 \subsubsection{Preconditioning the Gauss-Newton Inner Solve}
 \label{subsubsect:precond}
@@ -427,7 +427,7 @@ In the accuracy study, we perform a sweep over the Degrees Of Freedom (DOF, the 
 \end{figure}
 \fi
 
-Error norm measurements demonstrate that the ODIL methodology converges to the same solution as the time stepping approach. This is expected, since both methods rely on the same discretisation scheme. The accuracy of both methods refines with the number of degrees of freedom due to an increasing number of points per wavelength, as illustrated by Figure \ref{fig:accuracy}a. The error that remains represents numerical modelling errors resulting from the discretisation, along with diffusion and dissipation error. The results validate that the preconditioned ODIL methodology is capable of solving the forced acoustic wave equation in two dimensions to the same degree of accuracy as a time stepping methodology. This closes \hyperref[rq:1]{RQ1}.
+Error norm measurements demonstrate that the ODIL methodology converges to the same solution as the time stepping approach. This is expected, since both methods rely on the same discretisation scheme. The accuracy of both methods refines with the number of degrees of freedom due to an increasing number of points per wavelength, as illustrated by Figure \ref{fig:accuracy}a. The error that remains represents numerical modelling errors resulting from the discretisation, along with diffusion and dissipation error. The results validate that the preconditioned ODIL methodology is capable of solving the forced acoustic wave equation in two dimensions to the same degree of accuracy as a time stepping methodology. This closes \hyperref[]{RQ1}.
 
 \subsection{Computational Performance Properties}
 \label{subsect:results_perf}
@@ -653,7 +653,7 @@ for the update, $\delta \mathbf{u}$. Using the definition of the residual $\math
 A(\mathbf{u}_k+\delta\mathbf{u})=\mathbf{s},
 \end{equation}
 
-so a single update $\delta \mathbf{u}$ to the current iterate $\mathbf{u}_k$ gives the exact solution to the linear wave equation. This is a reflection of the property of the Gauss-Newton algorithm that it converges in exactly one outer iteration for linear problems \cite{PracticalMethodsOptimization2000}.
+so a single update $\delta \mathbf{u}$ to the current iterate $\mathbf{u}_k$ gives the exact solution to the linear wave equation. This is a reflection of the property of the Gauss-Newton algorithm that it converges in exactly one outer iteration for linear problems \cite{fletcherNewtonLikeMethods2000}.
 
 \section{Diagonalisation of the $\alpha$-circulant preconditioner}
 \label{app:precond}

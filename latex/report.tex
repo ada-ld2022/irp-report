@@ -427,26 +427,25 @@ On the homogeneous model, the analytical solution described in Section \ref{subs
 
 As a baseline, L-BFGS-B, unpreconditioned GMRES, and preconditioned GMRES were run for a small homogeneous problem, measuring error norm, wall clock time, error norm, and reason for exit (Appendix \ref{app:results}, Table \ref{tab:baseline}). The unpreconditioned GMRES method exited almost immediately on a relative tolerance  criterion, indicating the solve is not viable without preconditioning, while L-BFGS-B achieved a significantly smaller error norm, only at an infeasible iteration cost. Accordingly, only the caching and non-caching ODIL methodologies are compared against FDTD going forward.
 
+The relevant numerical results represented by figures in the discussion that follows are provided in Appendix \ref{app:results}, Table \ref{tab:baseline}-\ref{tab:results-cfl}.
+
 \subsection{Accuracy Properties}
 \label{subsect:results_accuracy}
 
-In Appendix \ref{app:results}, Table \ref{tab:accuracy} the L2 norm of all measured trace misfits across the 24 receivers in the homogeneous domain is reported for ODIL and time stepping. In Figure \ref{fig:accuracy}, the accuracy convergence against DOF is illustrated, along with the per-receiver error norms, and sample receiver traces. 
+Error norm measurements for ODIL are within $\sim\pm 0.01$ of those of the FDTD solution. This suggests that ODIL converges to the same solution as time stepping, as expected given both share the same discretisation scheme. The accuracy of both methods refines with the number of degrees of freedom due to an increasing number of points per wavelength (Figure \ref{fig:accuracy}a). The error that remains represents misfit resulting from the discretisation, along with diffusion and dissipation error. The results validate that the preconditioned ODIL methodology is capable of solving the forced acoustic wave equation in two dimensions to the same degree of accuracy as a time stepping methodology. This closes \hyperref[rq:1]{RQ1}.
 
 \ifshowfigs
 \begin{figure}[!ht]
-    \includegraphics[width=\textwidth]{figures/fig4_accuracy.png}
+    \includegraphics[width=0.9\textwidth]{figures/fig4_accuracy.png}
     \caption{Panel (a) indicates global error norm as a function of Degrees of Freedom (DOF). Panel (b) illustrates the relative difference between the normalised trace residual norms of ODIL and Devito. Panel (c) shows waveforms observed at the receiver indicated by the red circle in Panel (b) against the analytical solution. The trace panel also demonstrates spurious boundary reflections and the pre-reflection window which omits them from metric calculations. Panels (b) and (c) visualise the results on the coarsest grid (lowest DOF) of $N_z = N_y = 80$, giving approximately 10 points per wavelength.}
     \label{fig:accuracy}
 \end{figure}
 \fi
 
-\newpage
-Error norm measurements confirm ODIL converges to the same solution as time stepping, as expected given both share the same discretisation scheme. The accuracy of both methods refines with the number of degrees of freedom due to an increasing number of points per wavelength (Figure \ref{fig:accuracy}a). The error that remains represents misfit resulting from the discretisation, along with diffusion and dissipation error. The results validate that the preconditioned ODIL methodology is capable of solving the forced acoustic wave equation in two dimensions to the same degree of accuracy as a time stepping methodology. This closes \hyperref[rq:1]{RQ1}.
-
 \subsection{Computational Performance Properties}
 \label{subsect:results_perf}
 
-Figure \ref{fig:raw-scaling} presents the serial performance of the ODIL methodologies against Devito. Figures \ref{fig:raw-scaling}a and c demonstrate that ODIL's run time and memory performance scales within the time and space complexity bounds discussed in Section \ref{subsect:perf}. Devito's initial departure from the proposed complexities for time stepping is likely due to Python process overheads dominating the measurements. Figure \ref{fig:raw-scaling}b demonstrates raw wall clock measurements and evidences that, when run in serial, ODIL severely underperforms Devito, which is primarily attributable to inferior algorithmic scalability.
+ODIL's run time and memory performance scales within the time and space complexity bounds discussed in Section \ref{subsect:perf}, as seen in Figure \ref{fig:raw-scaling}. Devito's initial departure from the proposed complexities for time stepping is likely due to Python process overheads dominating the measurements. Figure \ref{fig:raw-scaling}b demonstrates raw wall clock measurements and evidences that, when run in serial, ODIL severely underperforms Devito, which is primarily attributable to inferior algorithmic scalability.
 
 \ifshowfigs
 \begin{figure}[!ht]
@@ -457,12 +456,11 @@ Figure \ref{fig:raw-scaling} presents the serial performance of the ODIL methodo
 \end{figure}
 \fi
 
-In Figure \ref{fig:raw-scaling}b, the non-caching method sits below the lower bounds of memory complexity, and this is expected. Since factors are discarded after they are formed, the peak memory usage cannot exceed $M_{\max} = p \times M_\text{k} $, where $p$ is the number of processes and $M_k$ is the memory required to factorising a Toeplitz block corresponding to a single frequency mode. Figure \ref{fig:raw-scaling}c, which isolates the per mode factorisation wall clock cost, shows that run time performance sits very close to the proposed lower bound on time complexity. This indicates near-optimal row ordering in the factorisation stage.
+In Figure \ref{fig:raw-scaling}b, the non-caching method sits below the lower bounds of memory complexity. Since factors are discarded after they are formed, the peak memory usage cannot exceed $M_{\max} = p \times M_\text{k} $, where $p$ is the number of processes and $M_k$ is the memory required to factorising a Toeplitz block corresponding to a single frequency mode. Figure \ref{fig:raw-scaling}c, which isolates the per mode factorisation wall clock cost, shows that run time performance sits very close to the proposed lower bound on time complexity. This indicates near-optimal row ordering in the factorisation stage.
 
-\newpage
 Figures \ref{fig:raw-scaling}c and d illustrate wall clock time and RSS as a function of peak source frequency $f_0$, exposing a key limitation of the preconditioner. Temporal grid density depends on the peak frequency  via the Nyquist criterion, and, since the ParaDiag II preconditioner scales poorly in memory when factorisations are cached, this limits the usable frequency range. Without sufficient RAM, at ultrasound frequencies the caching approach must be used instead, at the cost of an impractical factorisation time.
 
-Figure \ref{fig:hardware-scaling}a demonstrates near-linear speedup for ODIL up to 32 cores. Since the AMD Rome node used to execute the code has 4 NUMA domains, each formed of 32 cores, the departure beyond from linear speedup likely due to inefficiencies introduced by NUMA domain crosstalk. Devito shows negligible speedup,  attributed to OpenMP overhead offsetting the modest gains available for a problem of this size. Figure \ref{fig:hardware-scaling}c demonstrates how exploiting hardware parallelism allows ODIL to compete more closely with time stepping, though the lowest wall clock time measurement (at 128 cores/processes) is still $\sim$10 times greater than that of Devito. Figure \ref{fig:hardware-scaling}b demonstrates a less obvious idiosyncrasy of the non-caching methodology. Since, $M_{\max}$ depends on the number of processes, when the number of processes is equal to the number of modes to be factorised, the memory consumption of the non-caching method converges to that of the caching method.
+Figure \ref{fig:hardware-scaling}a demonstrates near-linear speedup for ODIL up to 32 cores. Since the AMD Rome node used to execute the code has 4 NUMA domains, each formed of 32 cores, the departure from linear speedup is likely due to inefficiencies introduced by NUMA domain crosstalk. Devito shows negligible speedup, attributed to OpenMP overhead offsetting the modest gains available for a problem of this size. Figure \ref{fig:hardware-scaling}c demonstrates how exploiting hardware parallelism allows ODIL to compete more closely with time stepping, though the lowest wall clock time measurement is still $\sim$10 times greater than that of Devito. Figure \ref{fig:hardware-scaling}b demonstrates a less obvious idiosyncrasy of the non-caching methodology. Since $M_{\max}$ depends on the number of processes, when the number of processes is equal to the number of modes to be factorised, the memory consumption of the non-caching method converges to that of the caching method.
 
 \ifshowfigs
 \begin{figure}[!ht]
@@ -479,7 +477,7 @@ In summary, under the presented formulation, ODIL's performance characteristics 
 \subsection{Dispersion and CFL Effects}
 \label{subsect:results_wave}
 
-Figure \ref{fig:phase-v-error} shows the percentage error in measured numerical phase velocity, as a function of Points Per Wavelength (PPW), against the analytical dispersion relation introduced in section \ref{subsect:wave_specifics}. At all measured angles, both ODIL and Devito agree closely with the analytical relation across PPW levels, with the error converging toward zero as PPW increases. It is expected that ODIL and Devito display the same dispersive behaviour, since both discretise the wave equation using the same finite difference stencil. That ODIL's measured dispersion matches this analytical prediction provides further quantitative evidence that it converges to the correct discrete solution of the wave equation.
+Figure \ref{fig:phase-v-error} shows the percentage error in measured numerical phase velocity, as a function of Points Per Wavelength (PPW), against the analytical dispersion relation. At all measured angles, both ODIL and Devito agree closely with the analytical relation across PPW levels, with the error converging toward zero as PPW increases. It is expected that ODIL and Devito display the same dispersive behaviour, since both discretise the wave equation using the same finite difference stencil. That ODIL's measured dispersion matches this analytical prediction provides further quantitative evidence that it converges to the correct discrete solution of the wave equation.
 
 \ifshowfigs
 \begin{figure}[!ht]
@@ -490,18 +488,18 @@ Figure \ref{fig:phase-v-error} shows the percentage error in measured numerical 
 \end{figure}
 \fi
 
-Figure \ref{fig:cfl-stability} establishes the behaviour of the ODIL and FDTD solutions in stable and unstable regimes. Below the classical CFL limit, ODIL's growth rate is approximately zero, indicating stability. Devito's growth rate is small and negative, indicating mild dissipation rather than instability. This is likely an artefact of Devito's absorbing boundary condition, whose damping contribution scales with the timestep size, rather than reflecting a genuine difference in solution quality. Beyond the CFL limit, the time stepping solution rapidly destabilises, producing exponentially growing amplitudes that quickly become non finite. In contrast, ODIL remains finite, but is still subject to field growth over time, though through a different mechanism.
+Figure \ref{fig:cfl-stability} establishes the behaviour of the ODIL and FDTD solutions in stable and unstable regimes. Below the classical CFL limit, ODIL's growth rate is approximately zero, indicating stability. Devito's growth rate is small and negative, indicating mild dissipation rather than instability, which is likely an artefact of Devito's absorbing boundary condition, rather than reflecting a genuine difference in solution quality. Beyond the CFL limit, the time stepping solution rapidly destabilises, producing exponentially growing amplitudes that quickly become non finite. In contrast, ODIL remains finite, but is still subject to field growth over time, just in a different manner.
 
 \ifshowfigs
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=\linewidth]{figures/fig8_cfl_stability.png}
-    \caption{L2 trace norm error and growth rate of maximum field amplitude per timestep as a function of the CFL number. Red crosses indicate the CFL value at which the time stepping solution became non-finite. $R^2$ coefficients displayed in panel (c) show that the quality of fit is high ($>$0.9) for each point in the unstable regime, suggesting field growth is suitably captured by it's described metric.}
+    \caption{L2 trace norm error and growth rate of maximum field amplitude per timestep as a function of the CFL number. Red crosses indicate the CFL value at which the time stepping solution became non-finite. $R^2$ coefficients displayed in panel (c) show that the quality of fit is high ($>$0.9) for each point in the unstable regime, suggesting field growth is suitably captured by its metric.}
     \label{fig:cfl-stability}
 \end{figure}
 \fi
 
-To analyse physical correctness, solutions are obtained for both methodologies on the Shepp Logan phantom model at stable and unstable CFL numbers. Figure \ref{fig:snapshots} presents snapshots of the pressure field solutions through time produced by ODIL and time stepping. Within the stable regime, ODIL and time stepping produce the same solution. Both solutions destabilise beyond the CFL limit, just in different ways. Devito solution fields grow exponentially, spilling into numerical overflow early in the simulation duration. On the contrary, ODIL initially appears to propagate the source wavelet in a physically plausible manner, but at later times seemingly converges on a fixed, oscillatory pattern. That pattern resembles a two dimensional standing wave at a frequency that approximately decreases with CFL number.
+Solutions on the Shepp Logan phantom model for both methodologies at stable and unstable CFL numbers are visualised in Figure \ref{fig:snapshots}. Within the stable regime, ODIL and time stepping produce the same solution. Both solutions destabilise beyond the CFL limit as suggested by Figure \ref{fig:cfl-stability}, but in different ways. Devito solution fields grow exponentially, spilling into numerical overflow early in the simulation. On the contrary, ODIL initially  propagate the source wavelet in a physically plausible manner, but at later times seemingly converges to a fixed, oscillatory pattern. That pattern resembles a two dimensional standing wave at a frequency that approximately decreases with CFL number.
 
 \ifshowfigs
 \begin{figure}[p]
@@ -512,7 +510,7 @@ To analyse physical correctness, solutions are obtained for both methodologies o
 \end{figure}
 \fi
 
-To further characterise this behaviour, the cosine similarity $s(t_i)$ between successive time levels $\mathbf{u}_{i}$ and $\mathbf{u}_{i+1}$ and growth rate $r(t_i)$ between successive frames  is calculated for the solution at each time level $t_i$ according to 
+To further characterise this behaviour, the cosine similarity $s(t_i)$ between successive time levels $\mathbf{u}_{i}$ and $\mathbf{u}_{i+1}$ and growth rate $r(t_i)$ between successive frames is calculated for the solution at each time level $t_i$ according to 
 
 \begin{align}
     s(t) &= \frac{\mathbf{u}_{t} \cdot \mathbf{u}_{t+1}}{\|\mathbf{u}_t\|\|\mathbf{u}_{t+1}\|},\\[3pt]
@@ -526,12 +524,12 @@ To further characterise this behaviour, the cosine similarity $s(t_i)$ between s
     \label{fig:mode-conv}
 \end{figure}
 
-The cosine similarity approaches unity at late times for every CFL tested (Figure \ref{fig:mode-conv}a), including those below the stability limit. This is a generic property of late time solutions rather than a signature of instability, and on its own cannot describe whether the oscillatory pattern persists, decays, or grows. The per step growth factor helps to separate the regimes (Figure \ref{fig:mode-conv}b). Below the CFL limit, $r \approx 1.0$, indicating at most a slow decay consistent with energy leaving through absorbing boundaries and geometric spreading. Above it, $r$ settles to an approximately constant value that increases monotonically with CFL, from $r \approx 1.07$ at CFL~$=1.3$ to $r \approx 1.24$ at CFL~$=17.2$. 
+The cosine similarity approaches unity as time progresses for every CFL tested (Figure \ref{fig:mode-conv}a), including those below the stability limit. This is a generic property of late time solutions rather than a signature of instability, and cannot solely describe whether the nature of the oscillatory pattern. The per step growth factor helps to separate the regimes (Figure \ref{fig:mode-conv}b). Below the CFL limit, $r \approx 1.0$, indicating at most a slow decay consistent with energy moving through boundary absorption and geometric spreading. Above it, $r$ settles to an approximately constant value that increases monotonically with CFL, from $r \approx 1.07$ at CFL~$=1.3$ to $r \approx 1.24$ at CFL~$=17.2$. 
 
 \newpage
-Jointly interpreting these metrics alongside the wavefield snapshots supports the interpretation of the late time instability. The amplitude remains non-zero, so there is a genuine field present rather than simple numerical noise. The near constant late time cosine similarity values suggest successive time levels share essentially the same spatial shape, and the factor by which that shape is rescaled at each step, the growth rate, is approximately steady, bar some drift at the latest times. This is consistent with the notion of a single mode of oscillation that is repeatedly amplified.
+Jointly interpreting these metrics alongside the wavefield snapshots supports the idea of a single oscillatory mode. The amplitude remains non-zero, so there is a genuine field presence rather than simple numerical noise. The near constant late time cosine similarity suggests successive time levels share essentially the same spatial shape, and the factor by which that shape is rescaled at each step, the growth rate, is approximately steady, bar some drift at the latest times. This is consistent with the notion of a single mode of oscillation that is repeatedly amplified.
 
-In summary, beyond the CFL limit, the ODIL solution does not diverge in the manner of an explicit time stepper. Instead, it appears to converge onto a single spatial mode of oscillation whose amplitude grows geometrically, at a rate set by the CFL number. It is postulated that this is because, beyond the CFL limit, ODIL propagates a dominant, unstable mode of oscillation. However, there is insufficient evidence presented in this study to verify this claim. Characterising the exact behaviour of the ODIL solution in the unstable regime and its mechanism is therefore left for future work. This closes \hyperref[rq:3]{RQ3}.  
+In summary, beyond the CFL limit, the ODIL solution does not diverge in the manner of an explicit time stepper. Instead, it appears to converge onto a single spatial mode of oscillation, at a rate set by the CFL number. It is postulated that this is because, beyond the CFL limit, ODIL propagates a dominant, unstable mode of oscillation. However, there is insufficient evidence presented in this study to verify this claim. Characterising the exact behaviour of the ODIL solution in the unstable regime and its mechanism is therefore left for future work. This closes \hyperref[rq:3]{RQ3}.  
 
 \newpage
 \section{Conclusion}
@@ -764,14 +762,14 @@ This section summarises the numerical and physical parameters used across each o
             Strong scaling & 
             $[0,\,0.2]^2$ &
             226 &
-            100 &
-            100 &
+            135 &
+            135 &
             553 &
-            $5.53\times 10^{6}$\\
+            $1.01\times 10^{7}$\\
 
             Dispersion & 
-            $[0,\,0.2]^2$ & 
-            226 &
+            $[0,\,0.4]^2$ & 
+            453 &
             varied & 
             varied & 
             varied & 
@@ -780,16 +778,16 @@ This section summarises the numerical and physical parameters used across each o
             Stability (quantitative) & 
             $[0,\, 0.1]^2$ & 
             113 &
-            68 & 
-            68 & 
+            88 & 
+            88 & 
             varied & 
             varied \\
 
             Stability (qualitative) & 
-            $[0,\, 0.3]^2$ & 
-            339 &
-            241 & 
-            241 & 
+            $[0,\, 0.35]^2$ & 
+            396 &
+            305 & 
+            305 & 
             varied & 
             varied \\
 
@@ -836,15 +834,15 @@ This section summarises the numerical and physical parameters used across each o
             Inclusion* & 
             $(0.10,\,0.10)$ & 
             NA & 
-            50 \\ \midrule
+            100 \\ \midrule
 
             Dispersion & 
             Homogeneous & 
-            $(0.05,\,0.05)$ & 
-            $n=320$, 4 rays* 
+            $(0.1,\,0.2)$ & 
+            $n=80$, 20 on 4 rays* 
             \newline $r \in [0.05, 0.15]\ \si{\metre}$, 
             \newline $\theta \in [0^{\circ}, 45^{\circ}]$ & 
-            100 \\ \midrule
+            50 \\ \midrule
 
             Stability (quantitative) & 
             Homogeneous & 
@@ -854,8 +852,8 @@ This section summarises the numerical and physical parameters used across each o
             
             Stability (qualitative) & 
             Shepp Logan Phantom* & 
-            (0.09, 0.24) & 
-            $n=1$, (0.22, 0.08)\ \si{\metre} & 
+            (0.165, 0.20) & 
+            $n=1$, (0.29, 0.05)\ \si{\metre} & 
             100 \\
 
             \bottomrule
@@ -864,7 +862,7 @@ This section summarises the numerical and physical parameters used across each o
         \label{tab:parameters_physical}
     \end{subtable}
 
-    \caption{Computational parameters used in the accuracy experiments. An NA entry signifies that a parameter is Not Applicable for the experiment it pertains to. * for more notes on model and receiver configurations, consult the discussion below.}
+    \caption{Computational parameters used in the described experiments. An NA entry signifies that a parameter is Not Applicable for the experiment it pertains to. * for more notes on model and receiver configurations, consult the discussion below.}
     \label{tab:parameters}
 \end{table}
 
@@ -878,7 +876,6 @@ Where referenced in Table \ref{tab:parameters_physical}, the 'halo' receiver con
 \end{align*}
 
 Other parameters include: $\alpha = 10^{-3}$ for the preconditioner, absolute and relative tolerances of $10^{-10}$ and $10^{-12}$ for the GMRES iterative solve, respectively, and a minimum number of Points Per Wavelength (PPW) of 10. For the stability experiments,  finite difference stencils with time and space order of 2 were used. For the remaining experiments, a space order of 6 was used, with a time order of 2. All data were stored in double precision.
-
 
 \section{Analytical Solution of the 2D Wave Equation}
 \label{app:conv_reduct}
@@ -1007,6 +1004,75 @@ which simplifies nicely down to the result stated in Equation \eqref{eq:reduced_
     \end{tabular}
     \caption{Results of the accuracy sweep presented in Figure \ref{fig:accuracy}. $\bar{\mathcal{E}}_\text{ODIL}$ and $\bar{\mathcal{E}}_\text{Devito}$ denote the mean of the global error norm averaged over 3 repeated measurements. The GMRES iterations for the internal $A\delta u = -r$ solve in the Gauss-Newton methodology that ODIL employs are also reported.}
     \label{tab:accuracy}
+\end{table}
+
+\begin{table}[!htp]
+    \centering
+    \begin{tabular}{cccrrcrr}
+        \toprule
+        & & \multicolumn{3}{c}{Wall clock (\si{\second})}
+          & \multicolumn{3}{c}{Peak RSS (Gi\si{\byte})} \\
+        \cmidrule(lr){3-5}\cmidrule(lr){6-8}
+        $f_0$ (\si{\kilo\hertz}) & DOF & Devito & ODIL$_\text{uc}$ & ODIL$_\text{c}$ & Devito & ODIL$_\text{uc}$ & ODIL$_\text{c}$ \\
+        \midrule
+         25 & $1.73 \times 10^{5}$ & 0.61 & 2.2 & 0.8 & 0.19 & 0.20 & 0.46 \\
+         50 & $1.28 \times 10^{6}$ & 0.62 & 30.7 & 9.2 & 0.21 & 0.36 & 3.10 \\
+         75 & $4.21 \times 10^{6}$ & 0.62 & 161.1 & 46.7 & 0.23 &  0.82 & 11.90 \\
+        100 & $1.01 \times 10^{7}$ & 0.63 &  508.9 & 142.3 & 0.29 & 1.53 &  30.92 \\
+        125 & $1.94 \times 10^{7}$ & 0.65 & 1316.4 & 365.7 & 0.39 & 2.71 & 65.16 \\
+        150 & $3.33 \times 10^{7}$ & 0.68 & 2939.5 & 826.7 & 0.52 & 4.51 & 122.75 \\
+        200 & $7.90 \times 10^{7}$ & 0.74 & 8884.2 & 2552.8 & 0.94 & 12.99 & 323.90 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Results of the serial performance measurements presented in Figure \ref{fig:raw-scaling}. $\text{nc}$ and $\text{c}$ denote 'non-caching' and 'caching', respectively.}
+    \label{tab:results-serial}
+\end{table}
+
+\begin{table}[!htp]
+    \centering
+    \begin{tabular}{rrrrrrr}
+        \toprule
+        & \multicolumn{3}{c}{ODIL (cached)} & \multicolumn{3}{c}{ODIL (uncached)} \\
+        \cmidrule(lr){2-4}\cmidrule(lr){5-7}
+        Cores & Wall (\si{\second}) & Speedup & Eff. (\%) & Wall (\si{\second}) & Speedup & Eff. (\%) \\
+        \midrule
+        1 & 144.74 & 1.00 & 100.0 & 529.19 & 1.00 & 100.0 \\
+        2 & 74.79 & 1.94 & 96.8 & 268.16 & 1.97 & 98.7 \\
+        4 & 41.48 & 3.49 & 87.2 & 139.93 & 3.78 & 94.5 \\
+        8 & 23.17 & 6.25 & 78.1 & 73.42 & 7.21 & 90.1 \\
+        16 & 13.79 & 10.50 & 65.6 & 39.83 & 13.29 & 83.0 \\
+        32 & 9.57 & 15.12 & 47.3 & 24.14 & 21.92 & 68.5 \\
+        64 & 8.16 & 17.74 & 27.7 & 17.90 & 29.56 & 46.2 \\
+        128 & 9.08 & 15.95 & 12.5 & 16.77 & 31.56 & 24.7 \\
+        \bottomrule
+    \end{tabular}
+
+    \caption{Measured wall clock times, speedup factors, and scaling efficiencies (Eff.) for the strong scaling experiment presented in Figure \ref{fig:hardware-scaling}. Results for Devito are omitted due to negligible performance gain, as documented.}
+    \label{tab:results-ss}
+\end{table}
+
+\begin{table}[!htp]
+    \centering
+    \begin{tabular}{rrrrc}
+        \toprule
+        CFL & $g_\text{ODIL}$ (\si{\per\second}) & $R^2$ & $\bar{\mathcal{E}}_\text{ODIL}$ & Dev. finite?\\
+        \midrule
+        0.70 & $-1.02 \times 10^{4}$ & 0.44 & 0.169 & \checkmark \\
+        0.90 & $-9.73 \times 10^{3}$ & 0.41 & 0.134 & \checkmark \\
+        1.00 & $-7.73 \times 10^{3}$ & 0.41 & 0.112 & \checkmark \\
+        1.01 & $ 2.16 \times 10^{5}$ & 1.00 & 0.110 & \checkmark \\
+        1.03 & $ 2.25 \times 10^{5}$ & 0.99 & 0.106 & $\times$ \\
+        1.05 & $ 2.59 \times 10^{5}$ & 0.99 & 0.100 & $\times$ \\
+        1.10 & $ 2.26 \times 10^{5}$ & 0.99 & 0.113 & $\times$ \\
+        1.30 & $ 2.20 \times 10^{5}$ & 0.98 & 0.157 & $\times$ \\
+        2.00 & $ 2.37 \times 10^{5}$ & 0.97 & 0.362 & $\times$ \\
+        3.00 & $ 2.50 \times 10^{5}$ & 0.98 & 0.726 & $\times$ \\
+        5.00 & $ 3.07 \times 10^{5}$ & 0.99 & 1.416 & $\times$ \\
+        9.20 & $ 2.29 \times 10^{5}$ & 0.99 & 1.440 & $\times$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Results for the quantitative stability investigation presented in Figure \ref{fig:cfl-stability}. $g_\text{ODIL}$ denotes the growth rate measured in the ODIL solution, along with the $R^2$ coefficient of determination for the fit. The mean ODIL error norm $\bar{\mathcal{E}}_\text{ODIL}$ measured over 3 repeats is reported. Finite Devito results were few, so instead an indicator of where Devito became non-finite is provided.}
+    \label{tab:results-cfl}
 \end{table}
 
 \newpage

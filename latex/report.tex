@@ -289,7 +289,7 @@ Then it follows that the minimiser is a discrete pressure field $\bf u$ for whic
 
 \subsection{Solving the ODIL problem}
 
-As a baseline, this problem is solved using the L-BFGS-B method \cite{xiao_new_2007}. The remainder of this work discusses another method derived from the Gauss-Newton method, since plain gradient based optimisation was shown to lack practical performance characteristics (Section \ref{sect:results}).
+As a baseline, this problem is solved using the L-BFGS-B method \cite{xiaoNewSubspaceLimited2007}. The remainder of this work discusses another method derived from the Gauss-Newton method, since plain gradient based optimisation was shown to lack practical performance characteristics (Section \ref{sect:results}).
 
 At the $k$-th iteration of the Gauss-Newton method, the solution field is updated according to 
 
@@ -300,7 +300,7 @@ At the $k$-th iteration of the Gauss-Newton method, the solution field is update
 
 For nonlinear problems, the update variable $\delta u$ is obtained by linearising the residual around the current iterate and finding the solution to the least squares problem that results through the normal equations. In Appendix \ref{app:gn}, it is shown that, since the residual is linear in $\mathbf{u}$, the normal equations reduce to $A \delta u = -r$. 
 
-The Gauss-Newton method converges in a single iteration for linear problems \cite{kelley_2_1999}. Substituting Equations \ref{eq:residual} and \ref{eq:gn-update} into the reduced normal equations yields
+The Gauss-Newton method converges in a single iteration for linear problems \cite{alfordAccuracyFinitedifferenceModeling1974}. Substituting Equations \ref{eq:residual} and \ref{eq:gn-update} into the reduced normal equations yields
 
 \begin{align}
     A(\mathbf{u}_{k+1} - \mathbf{u}_k) &= -(A\mathbf{u}_k - \mathbf{s})\\
